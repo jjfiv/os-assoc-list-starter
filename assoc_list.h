@@ -10,15 +10,15 @@ typedef struct AssocEntry_s {
 	// The value in the entry; a byte-string; usually not relevant to the data structure.
 	bytes_t* value;
 	// A chaining link to the next entry (maybe NULL!)
-  struct AssocEntry_s* next;
+	struct AssocEntry_s* next;
 } AssocEntry_t;
 
 // List of Entries pretending to be a Map; actually a Linked List!
-typedef struct {
+typedef struct AssocList_s {
 	// The number of entries in this list; stored here for O(1).
 	size_t num_elements;
 	// The head of the list; NULL if empty!
-	AssocElem_t *head;
+	AssocEntry_t *head;
 } AssocList_t;
 
 // Construct a new association list
@@ -32,6 +32,6 @@ bytes_t* assoc_get(AssocList_t* self, bytes_t* key);
 // Remove all entries from this list (try to free in the right places!)
 void assoc_clear(AssocList_t* self);
 // Lookup the number of elements in this data structure; prefer O(1) to O(n).
-size_t assoc_size(AssocList_t* self, bytes_t* key);
+size_t assoc_size(AssocList_t* self);
 
 #endif

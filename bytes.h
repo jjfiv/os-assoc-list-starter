@@ -2,14 +2,14 @@
 #define _BYTES_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 
 // Declare a "String" type.
 typedef struct bytes_s {
 	char *data;
 	size_t capacity;
-  size_t len;
+	size_t len;
 } bytes_t;
 
 // Allocate a new bytes object that is empty, on the heap.
@@ -53,6 +53,6 @@ ssize_t bytes_readline(FILE* fp, bytes_t* self);
 // Is this the same as the C-String cmp?
 bool bytes_eq(bytes_t* self, char* cmp);
 // Does this bytes_t start with the C-String pattern?
-bool bytes_startswith(bytes_t* self, char* pattern) {
+bool bytes_startswith(bytes_t* self, char* pattern);
 
 #endif

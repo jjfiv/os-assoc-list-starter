@@ -1,11 +1,13 @@
 #include "assoc_list.h"
 #include "bytes.h"
+#include <ctype.h>
+#include <stdlib.h>
 
-int skip_whitespace(bytes_t* buffer, int start) {
+static int skip_whitespace(bytes_t* buffer, int start) {
 	// check inputs:
 	assert(buffer != NULL);
-	assert(start > 0);
-	assert(start < );
+	assert(start >= 0);
+	assert(start < bytes_size(buffer));
 	const int N = bytes_size(buffer);
 	for (int i=start; i<N; i++) {
 		if (isspace(bytes_get(buffer, i))) {
@@ -20,7 +22,7 @@ int skip_whitespace(bytes_t* buffer, int start) {
 int read_word(bytes_t* buffer, int start, bytes_t* output) {
 	// check inputs:
 	assert(buffer != NULL);
-	assert(start > 0);
+	assert(start >= 0);
 	assert(start < bytes_size(buffer));
 	assert(output != NULL);
 
@@ -38,7 +40,7 @@ int read_word(bytes_t* buffer, int start, bytes_t* output) {
 		if (isspace(c)) {
 			return i;
 		} else {
-			bytes_push(output, b);
+			bytes_push(output, c);
 		}
 	}
 	return N;
@@ -47,7 +49,7 @@ int read_word(bytes_t* buffer, int start, bytes_t* output) {
 static int read_maybe_quoted(bytes_t* buffer, int start, bytes_t* output) {
 	// check inputs:
 	assert(buffer != NULL);
-	assert(start > 0);
+	assert(start >= 0);
 	assert(start < bytes_size(buffer));
 	assert(output != NULL);
 
@@ -64,40 +66,38 @@ static int read_maybe_quoted(bytes_t* buffer, int start, bytes_t* output) {
 		return N;
 	}
 	// not-quoted case:
-	if (bytes_get(start) != '"') {
+	if (bytes_get(buffer, start) != '"') {
 		return read_word(buffer, start, output);
 	}
 
-	assert(bytes_get(start == '"'));
-
 	// read until the end quote or end:
-	for (int i=start; i<N; i++) {
+	for (int i=start+1; i<N; i++) {
 		char c = bytes_get(buffer, i);
 		if (c == '\\') {
 			// escape quotes and newlines:
 			if (i+1 >= N) {
 				fprintf(stderr, "Escape sequence found at end of file.\n");
-				exit(-1);
+				return -1;
 			}
 			i++; // step to next char
 			char ec = bytes_get(buffer, i);
 			if (ec == '\\' || ec == '"' || ec == '\'') {
-				bytes_push(ec);
+				bytes_push(output, ec);
 				continue;
 			} else if (ec == 'n') {
-				bytes_push('\n');
+				bytes_push(output, '\n');
 			} else if (ec == 't') {
-				bytes_push('\t');
+				bytes_push(output, '\t');
 			} else if (ec == '0') {
-				bytes_push('\0');
+				bytes_push(output, '\0');
 			} else {
-				fprintf("Unknown escape sequence: \\%c\n", ec);
-				exit(-1);
+				fprintf(stderr, "Unknown escape sequence: \\%c\n", ec);
+				return -1;
 			}
 		} else if (c == '"') {
 			return i+1;
 		} else {
-			bytes_push(output, b);
+			bytes_push(output, c);
 		}
 	}
 	return N;
@@ -148,27 +148,48 @@ int main(void) {
 		bytes_t* word = bytes_new_empty();
 		// we keep track of how much of line we've read from in position:
 		int position = read_word(&line_buffer, 0, word);
+		if (position < 0) { 
+			bytes_free(word);
+			continue;
+		 }
 
-		if (bytes_eq(word "put")) {
+		if (bytes_eq(word, "put")) {
 			bytes_t* key = bytes_new_empty();
 			bytes_t* value = bytes_new_empty();
 			// read from there to the end of the key:
 			position = read_maybe_quoted(&line_buffer, position, key);
+			if (position < 0) { 
+				bytes_free(key);
+				bytes_free(value);
+				bytes_free(word);
+				continue;
+			}
 			// read from there to the end of the value:
-			read_maybe_quoted(&line_buffer, position, value);
+			position = read_maybe_quoted(&line_buffer, position, value);
+			if (position < 0) { 
+				bytes_free(key);
+				bytes_free(value);
+				bytes_free(word);
+				continue;
+			}
 			// insert: (key and value memory become owned by dictionary!)
 			assoc_put(dictionary, key, value);
 		} else if (bytes_eq(word, "get")) {
 			bytes_t* key = bytes_new_empty();
 			// read from there to the end of the key:
 			position = read_maybe_quoted(&line_buffer, position, key);
+			if (position < 0) { 
+				bytes_free(key);
+				bytes_free(word);
+				continue;
+			}
 			// Look it up in the dictionary:
 			bytes_t* maybe_found = assoc_get(dictionary, key);
 			if (maybe_found == NULL) {
 				puts("NOT-FOUND");
 			} else {
 				printf("FOUND\n");
-				bytes_println(maybe_found);
+				bytes_println(stdout, maybe_found);
 				printf("DONE\n");
 			}
 			// Release the key when we're done with it!
@@ -177,6 +198,11 @@ int main(void) {
 			bytes_t* key = bytes_new_empty();
 			// read from there to the end of the key:
 			position = read_maybe_quoted(&line_buffer, position, key);
+			if (position < 0) { 
+				bytes_free(key);
+				bytes_free(word);
+				continue;
+			}
 			// Remove from the dictionary:
 			assoc_remove(dictionary, key);
 			// Release the key when we're done with it!
