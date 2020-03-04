@@ -29,6 +29,9 @@ int main(void) {
     assert(assoc_get(dictionary, bytes_copy_str("B")) == NULL);
     assert(bytes_eqc(assoc_get(dictionary, bytes_copy_str("A")), "a"));
     assert(1 == assoc_size(dictionary));
+    
+    assoc_remove(dictionary, bytes_copy_str("A"));
+    assert(0 == assoc_size(dictionary));
 
     return 0;
 }
