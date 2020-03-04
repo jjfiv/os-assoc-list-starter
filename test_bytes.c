@@ -5,11 +5,14 @@ int main(int argc, char **argv) {
 	bytes_t* foo = bytes_new_empty();
 	bytes_push(foo, 'x');
 	bytes_push(foo, 'y');
-	assert(bytes_eq(foo, "xy"));
+	assert(bytes_eqc(foo, "xy"));
+	assert(bytes_get(foo, 0) == 'x');
+	assert(bytes_get(foo, 1) == 'y');
+
 	for (int i=0; i<9; i++) {
 		bytes_push(foo, 'a'+i);
 	}
-	assert(bytes_eq(foo, "xyabcdefghi"));
+	assert(bytes_eqc(foo, "xyabcdefghi"));
 	bytes_debug(foo);
 	
 	// delete bytes and debug again:
@@ -21,5 +24,5 @@ int main(int argc, char **argv) {
 	
 	bytes_trim(wasted_space);
 	bytes_debug(wasted_space);
-	assert(bytes_eq(wasted_space, "indented and extra"));
+	assert(bytes_eqc(wasted_space, "indented and extra"));
 }

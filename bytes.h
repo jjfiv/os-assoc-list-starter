@@ -16,8 +16,6 @@ typedef struct bytes_s {
 bytes_t* bytes_new_empty(void);
 // Copy the data from a cstring into this bytes object.
 bytes_t* bytes_copy_str(char* data);
-// Copy the data from a subset of a cstring into this bytes object.
-bytes_t* bytes_copy_slice(char* data, size_t len);
 
 // Delete the insides of a bytes object:
 void bytes_clear(bytes_t* self);
@@ -50,8 +48,10 @@ void bytes_println(FILE* fp, bytes_t* self);
 // Read a line from a file into self, return the number of bytes read.
 ssize_t bytes_readline(FILE* fp, bytes_t* self);
 
+// Are these bytes objects the same?
+bool bytes_equal(bytes_t *self, bytes_t* other);
 // Is this the same as the C-String cmp?
-bool bytes_eq(bytes_t* self, char* cmp);
+bool bytes_eqc(bytes_t* self, char* cmp);
 // Does this bytes_t start with the C-String pattern?
 bool bytes_startswith(bytes_t* self, char* pattern);
 

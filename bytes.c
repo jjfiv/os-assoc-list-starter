@@ -20,6 +20,18 @@ static void ensure_length(bytes_t *self, size_t n) {
   assert(self->data);
 }
 
+// Copy the data from a subset of a cstring into this bytes object.
+static bytes_t *bytes_copy_slice(char *data, size_t len) {
+  assert(data != NULL);
+  bytes_t *buf = bytes_new_empty();
+  ensure_length(buf, len);
+  buf->len = len;
+  for (int i = 0; i < len; i++) {
+    buf->data[i] = data[i];
+  }
+  return buf;
+}
+
 // Allocate a new bytes object that is empty, on the heap.
 bytes_t *bytes_new_empty(void) {
   bytes_t *new = malloc(sizeof(bytes_t));
@@ -30,18 +42,6 @@ bytes_t *bytes_new_empty(void) {
 bytes_t *bytes_copy_str(char *data) {
   assert(data != NULL);
   return bytes_copy_slice(data, strlen(data));
-}
-
-// Copy the data from a subset of a cstring into this bytes object.
-bytes_t *bytes_copy_slice(char *data, size_t len) {
-  assert(data != NULL);
-  bytes_t *buf = bytes_new_empty();
-  ensure_length(buf, len);
-  buf->len = len;
-  for (int i = 0; i < len; i++) {
-    buf->data[i] = data[i];
-  }
-  return buf;
 }
 
 // Delete a bytes object:
@@ -179,8 +179,22 @@ void bytes_println(FILE *fp, bytes_t *self) {
   fprintf(fp, "\n");
 }
 
+bool bytes_equal(bytes_t* self, bytes_t* other) {
+  assert(self != NULL);
+  assert(other != NULL);
+  if (self->len != other->len) {
+    return false;
+  }
+  for (int i=0; i<self->len; i++) {
+		if (other->data[i] != self->data[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Is this the same as the C-String cmp?
-bool bytes_eq(bytes_t *self, char *cmp) {
+bool bytes_eqc(bytes_t *self, char *cmp) {
 	size_t i;
   assert(self != NULL);
   assert(cmp != NULL);
