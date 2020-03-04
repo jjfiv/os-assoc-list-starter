@@ -205,8 +205,7 @@ int main(void) {
 			}
 			// read from there to the end of the value:
 			position = read_maybe_quoted(&line_buffer, position, value);
-			if (position < 0 || position >= EOL) { 
-				puts("ERROR");
+			if (position < 0) { 
 				bytes_free(key);
 				bytes_free(value);
 				bytes_free(word);
@@ -218,7 +217,7 @@ int main(void) {
 			bytes_t* key = bytes_new_empty();
 			// read from there to the end of the key:
 			position = read_maybe_quoted(&line_buffer, position, key);
-			if (position < 0 || position >= EOL) { 
+			if (position < 0) { 
 				puts("ERROR");
 				bytes_free(key);
 				bytes_free(word);
@@ -239,8 +238,7 @@ int main(void) {
 			bytes_t* key = bytes_new_empty();
 			// read from there to the end of the key:
 			position = read_maybe_quoted(&line_buffer, position, key);
-			if (position < 0 || position >= EOL) { 
-				puts("ERROR");
+			if (position < 0) { 
 				bytes_free(key);
 				bytes_free(word);
 				continue;
